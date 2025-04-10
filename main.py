@@ -1,4 +1,6 @@
 import requests
+import streamlit as st
+import send_email as fn
 
 api_key = "60d55ee3ea5442889806dcc059beb25b"
 url = ("https://newsapi.org/v2/everything?q=tesla&"
