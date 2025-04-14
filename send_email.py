@@ -20,42 +20,49 @@ def send_email(topic, message):
     msg["To"] = admin_email
     msg["Subject"] = subject
 
+    msg_alternative = MIMEMultipart("alternative")
+    msg.attach(msg_alternative)
+
     # News Data
-    body = f"Here are the latest {topic} news articles:\n\n"
+    html_body = f"<h1>{topic.title()} News Digest</h1><br>"
     for i, news in enumerate(message):
         try:
-            if news:
-                news_title = news["title"] or "No Title"
-                news_desc = news["description"] or "No Description"
-                news_content = news["content"] or "No content"
-                image_url = news["image_url"] or None
-                news_url = news["url"]
+            news_title = news["title"] or "No Title"
+            news_desc = news["description"] or "No Description"
+            news_content = news["content"] or "No content"
+            image_url = news["image_url"] or None
+            news_url = news["url"]
 
-                body += (news_title + "\n" +
-                         news_desc + "\n" +
-                         news_content + "\n" +
-                         news_url + 2 * "\n")
+            html_body += f"""
+                <h2>{news_title}</h2>
+                <p><strong>{news_desc}</strong></p>
+            """
 
-                if image_url:
-                    try:
-                        image_data = requests.get(image_url).content
+            if image_url:
+                try:
+                    image_data = requests.get(image_url).content
 
-                        # the image was converted into MIMEImage
-                        img = MIMEImage(image_data)
-                        img.add_header('Content-ID', f'<image{i}>')
-                        img.add_header("Content-Disposition", "inline", filename=f"image{i}.jpg")
-                        msg.attach(img)
-                    except Exception as img_error:
-                        body += "[Image failed to load]" + "\n"
-                        print(f"Image {i} failed: {img_error}")
+                    # the image was converted into MIMEImage
+                    img = MIMEImage(image_data)
+                    img.add_header("Content-ID", f"<image{i}>")
+                    img.add_header("Content-Disposition", "inline", filename=f"image{i}.jpg")
+                    msg.attach(img)
 
-            else:
-                print("No articles found")
+                    html_body += f'<img src="cid:image{i}" width="500"/><br>'
+                except Exception as e:
+                    print(f"Image failed to load: {e}")
+                    html_body += "[Image failed to load]<br>"
+
+            html_body += f"""
+                            <p>{news_content}</p>
+                            <a href="{news_url}">Read more</a>
+                            <hr>
+                        """
         except Exception as e:
             print(f"Article {i} error: {e}")
 
 
-    msg.attach(MIMEText(body,"plain"))
+    msg_alternative.attach(MIMEText(html_body, "html"))
 
     # Send Email
     context = ssl.create_default_context()
