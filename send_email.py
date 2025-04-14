@@ -3,7 +3,7 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 
 
-def send_email(message):
+def send_email(topic, message):
     host = "smtp.gmail.com"
     port = 465
 
@@ -11,14 +11,26 @@ def send_email(message):
     admin_pw = st.secrets["email"]["ADMIN_PASS"]
 
     # News Data
-    body = "Here are the latest Tesla news articles:\n\n"
+    body = f"Here are the latest {topic} news articles:\n\n"
     for news in message:
-        news_title = news["title"]
-        news_desc = news["description"]
-        body += news_title +"\n" + news_desc + 2*"\n"
+        try:
+            if news:
+                news_title = news["title"] or "No Title"
+                news_desc = news["description"] or "No Description"
+                news_content = news["content"] or "No content"
+                news_url = news["url"]
+                body += (news_title + "\n" +
+                         news_desc + "\n" +
+                         news_content + "\n" +
+                         news_url + 2*"\n")
+            else:
+                print("No articles found")
+        except Exception as e:
+            print(e)
+
 
     # Email format
-    subject = "Tesla News Digest"
+    subject = f"{topic} News Digest"
     msg = MIMEText(body)
     msg["From"] = admin_email
     msg["To"] = admin_email
