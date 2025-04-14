@@ -31,6 +31,7 @@ for article in content["articles"]:
         "title": article["title"],
         "description": article["description"],
         "url": article["url"],
-        "content": article["content"]
+        "content": article["content"],
+        "image_url": article["urlToImage"]
     })
 fn.send_email(news_topic,body)
