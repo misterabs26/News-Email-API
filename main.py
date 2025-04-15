@@ -4,34 +4,54 @@ import send_email as fn
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-# Get last week's date (if u want to get the last month's news)
-last_week = date.today() - relativedelta(days=7)
-formatted_date = last_week.strftime("%Y-%m-%d")
+# Web Layout
+st.header("Get the latest news today!")
+news_topic = st.text_input("", placeholder="Search news about ..", key="topic")
 
-news_topic = "Philippines"
-api_key = "60d55ee3ea5442889806dcc059beb25b"
-url = (f"https://newsapi.org/v2/everything?"
-       f"q={news_topic}&"
-       f"from={last_week}&"
-       f"sortBy=relevancy&"
-       f"apiKey=60d55ee3ea5442889806dcc059beb25b&"
-       f"language=en&"
-       f"pageSize=15")
+if news_topic:
+    # Get last week's date (if u want to get the last month's news)
+    last_week = date.today() - relativedelta(days=7)
+    formatted_date = last_week.strftime("%Y-%m-%d")
 
-# Make request
-request = requests.get(url)
+    api_key = "60d55ee3ea5442889806dcc059beb25b"
+    url = (f"https://newsapi.org/v2/everything?"
+           f"q={news_topic}&"
+           f"from={last_week}&"
+           f"sortBy=relevancy&"
+           f"apiKey=60d55ee3ea5442889806dcc059beb25b&"
+           f"language=en&"
+           f"pageSize=15")
 
-# Get a dictionary with data
-content = request.json()
+    # Make request
+    request = requests.get(url)
 
-# Access the article titles and description
-body = []
-for article in content["articles"]:
-    body.append({
-        "title": article["title"],
-        "description": article["description"],
-        "url": article["url"],
-        "content": article["content"],
-        "image_url": article["urlToImage"]
-    })
-fn.send_email(news_topic,body)
+    # Get a dictionary with data
+    content = request.json()
+
+    # Access the article titles and description
+    body = []
+    for i, article in enumerate(content["articles"]):
+
+        # For email newsletter
+        body.append({
+            "title": article["title"],
+            "description": article["description"],
+            "url": article["url"],
+            "content": article["content"],
+            "image_url": article["urlToImage"]
+        })
+
+        # Displaying news on the webpage
+        with st.container():
+            st.subheader(article["title"])
+            st.text(article["description"])
+            if article["urlToImage"]:
+                st.image(article["urlToImage"], use_container_width=True)
+                with st.expander("Read more"):
+                    st.text(article["content"])
+                    st.success(article["url"])
+
+    # fn.send_email(news_topic,body)
+
+else:
+    st.info("Please type anything in the search bar")

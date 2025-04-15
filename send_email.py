@@ -13,6 +13,8 @@ def send_email(topic, message):
     admin_email = st.secrets["email"]["ADMIN_EMAIL"]
     admin_pw = st.secrets["email"]["ADMIN_PASS"]
 
+    receiver_email = "ayeras.gerald26@gmail.com"
+
     # Email format
     subject = f"{topic} News Digest"
     msg = MIMEMultipart()
@@ -40,10 +42,11 @@ def send_email(topic, message):
 
             if image_url:
                 try:
-                    image_data = requests.get(image_url).content
+                    image_data = requests.get(image_url)
+                    response = image_data.content
 
                     # the image was converted into MIMEImage
-                    img = MIMEImage(image_data)
+                    img = MIMEImage(response)
                     img.add_header("Content-ID", f"<image{i}>")
                     img.add_header("Content-Disposition", "inline", filename=f"image{i}.jpg")
                     msg.attach(img)
@@ -68,5 +71,5 @@ def send_email(topic, message):
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL(host,port,context=context) as server:
         server.login(admin_email,admin_pw)
-        server.sendmail(admin_email,admin_email,msg.as_string())
+        server.sendmail(admin_email,receiver_email,msg.as_string())
 
